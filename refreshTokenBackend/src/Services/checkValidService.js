@@ -15,7 +15,7 @@ const checkEmailExist = async (email) => {
   try {
     const sql = "SELECT * FROM user where email=?";
     const values = [email];
-    const user = await db.promise(sql, values);
+    const [user, fields] = await db.query(sql, values);
     if (user.length !== 0) {
       console.log(user);
       return true;

@@ -1,6 +1,6 @@
 require("dotenv").config();
 import jwt from "jsonwebtoken";
-
+import { loginRegisterService } from "../Services/loginRegisterService";
 const nonSecurePaths = [
   "/",
   "/about",
@@ -10,38 +10,80 @@ const nonSecurePaths = [
   "/register",
 ];
 
-const createJwt = (payload) => {
+const createAccessJwt = (payload) => {
   let key = process.env.JWT_SECRET;
   let token = null;
   try {
-    token = jwt.sign(payload, key, { expiresIn: process.env.JWT_EXPIRES_IN });
+    token = jwt.sign(payload, key, {
+      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
+    });
   } catch (error) {
     console.log(error);
   }
   return token;
 };
-
+const createRefreshJwt = (payload) => {
+  let key = process.env.JWT_SECRET;
+  let token = null;
+  try {
+    token = jwt.sign(payload, key, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  return token;
+};
 const verifyToken = (token) => {
   let key = process.env.JWT_SECRET;
   let decoded = null;
   try {
     decoded = jwt.verify(token, key);
   } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return "TokenExpiredError";
+    }
     console.log(error);
   }
   return decoded;
 };
 
-const checkUserJwt = (req, res, next) => {
+const checkUserJwt = async (req, res, next) => {
   if (nonSecurePaths.includes(req.path)) return next();
-  let cookie = req.cookies;
-  if (cookie && cookie.accessToken) {
-    let token = cookie.accessToken;
-    let decoded = verifyToken(token);
-    if (decoded) {
+  let cookies = req.cookies;
+  if (cookies && cookies.accessToken) {
+    let accessToken = cookies.accessToken;
+    let decoded = verifyToken(accessToken);
+    if (decoded && decoded !== "TokenExpiredError") {
+      decoded.accessToken = accessToken;
+      decoded.refreshToken = cookies.refreshToken;
       req.user = decoded;
-      req.token = token;
       next();
+    } else if (decoded && decoded === "TokenExpiredError") {
+      if (cookies && cookies.refreshToken) {
+        let data = await handleRefreshToken(cookies.refreshToken);
+        let newAccessToken = data.newAccessToken;
+        let newRefreshToken = data.newRefreshToken;
+        if (newAccessToken && newRefreshToken) {
+          res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 900 * 1000,
+          });
+          res.cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 3600 * 1000,
+          });
+        }
+        return res.status(405).json({
+          EC: -1,
+          DT: "",
+          EM: "Need to retry with new token",
+        });
+      }
     } else {
       return res.status(401).json({
         EC: -1,
@@ -58,8 +100,25 @@ const checkUserJwt = (req, res, next) => {
   }
 };
 
+const handleRefreshToken = async (refreshToken) => {
+  let newAccessToken = "";
+  let newRefreshToken = "";
+  let decoded = verifyToken(refreshToken);
+  if (decoded) {
+    let payload = {
+      email: decoded.email,
+      avatar: decoded.avatar,
+      groupId: decoded.groupId,
+    };
+    newAccessToken = createAccessJwt(payload);
+    newRefreshToken = createRefreshJwt(payload);
+  }
+  return { newAccessToken, newRefreshToken };
+};
+
 module.exports = {
-  createJwt,
+  createAccessJwt,
+  createRefreshJwt,
   verifyToken,
   checkUserJwt,
 };

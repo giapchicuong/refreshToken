@@ -5,6 +5,7 @@ import { UserContext } from "@/context/UserContext";
 import Loading from "@/components/loading";
 const App = ({ children }) => {
   const { user } = useContext(UserContext);
+
   return (
     <body>
       <section className="max-container ">

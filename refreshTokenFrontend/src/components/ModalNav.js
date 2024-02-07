@@ -1,5 +1,5 @@
 import { UserContext } from "@/context/UserContext";
-import { getAvatar, updateAvatar } from "@/services/userServices";
+import { updateAvatar } from "@/services/userServices";
 import { useContext, useState } from "react";
 
 const ModalNav = (props) => {

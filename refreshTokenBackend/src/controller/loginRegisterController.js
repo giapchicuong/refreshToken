@@ -38,7 +38,17 @@ const loginController = async (req, res) => {
     if (data && data.EC === 0 && data.DT.accessToken) {
       res.cookie("accessToken", data.DT.accessToken, {
         httpOnly: true,
-        maxAge: 60 * 60 * 1000,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 900 * 1000,
+      });
+    }
+    if (data && data.EC === 0 && data.DT.refreshToken) {
+      res.cookie("refreshToken", data.DT.refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 3600 * 1000,
       });
     }
     return res.status(200).json({
@@ -56,9 +66,10 @@ const loginController = async (req, res) => {
   }
 };
 
-const logoutController = async (req,res) => {
+const logoutController = async (req, res) => {
   try {
     res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
     return res.status(200).json({
       EM: "Log out success", //error message
       EC: 0, //error code

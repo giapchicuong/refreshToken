@@ -19,6 +19,11 @@ app.use(cookieParser());
 // API
 initApiRoutes(app);
 
+app.use((req, res) => {
+  return res.status(500).send("404 not found");
+});
+
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

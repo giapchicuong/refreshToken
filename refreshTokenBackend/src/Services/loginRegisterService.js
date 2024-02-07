@@ -11,19 +11,18 @@ const registerService = async (rawData) => {
         EC: 1,
       };
     }
-
     // Hass password
     const hassPass = checkValidService.hashPassword(rawData.password);
 
     const sql =
       "INSERT INTO `user`(`email`, `password`,`username`,`createdAt`,`updatedAt`) VALUES (?, ?, ?, NOW(),NOW())";
     const values = [rawData.email, hassPass, rawData.username];
-    const data = await db.promise(sql, values);
-
+    const [data, fields] = await db.query(sql, values);
     if (data) {
       return {
         EM: "A user is created successfully",
         EC: 0,
+        DT: rawData,
       };
     } else {
       return {
@@ -43,7 +42,7 @@ const loginService = async (rawData) => {
   try {
     const sql = "Select * from user where email=?";
     const values = [rawData.email];
-    const data = await db.promise(sql, values);
+    const [data, fields] = await db.query(sql, values);
     if (data.length > 0) {
       const hashedPassword = data[0].password;
       const isCorrectPassword = checkValidService.checkPassword(
@@ -57,12 +56,14 @@ const loginService = async (rawData) => {
           groupId: data[0].groupId,
         };
 
-        let token = JwtAction.createJwt(payload);
+        let accessToken = JwtAction.createAccessJwt(payload);
+        let refreshToken = JwtAction.createRefreshJwt(payload);
         return {
           EM: "Login successfully",
           EC: 0,
           DT: {
-            accessToken: token,
+            accessToken: accessToken,
+            refreshToken: refreshToken,
             email: data[0].email,
             avatar: data[0].avatar,
           },

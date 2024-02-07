@@ -3,7 +3,6 @@ import { useContext, useEffect, useState } from "react";
 import { UserContext } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 import { deleteUser, getAllUser } from "@/services/userServices";
-import Loading from "../../components/loading";
 import TableUser from "./TableUser";
 const Users = () => {
   const { user } = useContext(UserContext);
@@ -23,7 +22,7 @@ const Users = () => {
   useEffect(() => {
     handleGetAllUser();
   }, []);
-
+  
   const handleEdit = (item) => {
     setIsShowModalUser(!isShowModalUser);
     setDataModal(item);

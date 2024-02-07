@@ -4,8 +4,7 @@ const updateAvatar = async (rawDataName, rawData) => {
   try {
     const sql = "UPDATE user set avatar = ? where email = ?";
     const values = [rawDataName?.filename, rawData.email];
-    const data = await db.promise(sql, values);
-    // console.log(data)
+    const [data, fields] = await db.query(sql, values);
     if (data.affectedRows > 0) {
       return {
         EM: "Avatar updated successfully",
@@ -32,7 +31,7 @@ const getImageByEmail = async (rawData) => {
   try {
     const sql = "SELECT avatar from user where email = ?";
     const values = [rawData.email];
-    const data = await db.promise(sql, values);
+    const [data, fields] = await db.query(sql, values);
     if (data.length > 0) {
       return {
         EM: "Get a avatar successfully",

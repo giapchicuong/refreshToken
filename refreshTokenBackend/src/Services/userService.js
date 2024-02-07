@@ -3,7 +3,7 @@ import checkValidService from "./checkValidService";
 const getAllUser = async () => {
   try {
     const sql = "SELECT * FROM user";
-    const user = await db.promise(sql);
+    const [user, fields] = await db.query(sql);
     if (user) {
       return {
         EM: "Get data success.",
@@ -42,7 +42,7 @@ const createNewUser = async (rawData) => {
     const sql =
       "INSERT INTO `user`(`email`, `password`,`username`,`createdAt`,`updatedAt`) VALUES (?, ?, ?, NOW(),NOW())";
     const values = [rawData.email, hassPass, rawData.username];
-    const data = await db.promise(sql, values);
+    const [data, fields] = await db.query(sql, values);
     if (data) {
       return {
         EM: "New user created successfully",
@@ -68,13 +68,12 @@ const deleteUser = async (rawData) => {
   try {
     const sql = "DELETE FROM user where id = ? limit 1";
     const values = [rawData.id];
-    const data = await db.promise(sql, values);
-    console.log(rawData)
+    const [data, fields] = await db.query(sql, values);
     if (data.affectedRows > 0) {
       return {
         EM: "Delete user successfully",
         EC: 0,
-        DT: [],
+        DT: rawData,
       };
     } else {
       return {
@@ -96,12 +95,12 @@ const updateUser = async (rawData) => {
   try {
     const sql = "UPDATE user set username = ? where id = ?";
     const values = [rawData.username, rawData.id];
-    const data = await db.promise(sql, values);
+    const [data, fields] = await db.query(sql, values);
     if (data.affectedRows > 0) {
       return {
         EM: "A user updated successfully",
         EC: 0,
-        DT: [],
+        DT: rawData,
       };
     } else {
       return {

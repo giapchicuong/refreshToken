@@ -49,6 +49,7 @@ const UserProvider = ({ children }) => {
     }
   };
 
+
   useEffect(() => {
     fetchUserAccount();
   }, []);

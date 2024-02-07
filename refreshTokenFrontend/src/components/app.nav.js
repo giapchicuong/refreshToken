@@ -3,14 +3,12 @@ import { UserContext } from "@/context/UserContext";
 import { logoutUser } from "@/services/loginRegisterServices";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import Image from "next/image";
 import ModalNav from "./ModalNav";
-import Loading from "./loading";
-import { getAvatar } from "@/services/userServices";
 const AppNavbar = () => {
   const pathname = usePathname();
-  const { user, logoutContext, avatarContext } = useContext(UserContext);
+  const { user, logoutContext } = useContext(UserContext);
   const [isShowModal, setIsShowModal] = useState(false);
 
   const links = [
@@ -45,7 +43,6 @@ const AppNavbar = () => {
 
 
   if (pathname === "/login" || pathname === "/register") return <></>;
-
   return (
     <nav className="flex justify-between items-center h-[120px] w-full">
       <Link href={"/"}>
